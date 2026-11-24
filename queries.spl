@@ -1,0 +1,29 @@
+// Assumes Sysmon in index=sysmon. Adjust index and field names to your environment.
+
+// 1. wmiexec pattern (WmiPrvSE -> cmd /Q /c ... ADMIN$)
+index=sysmon EventCode=1 ParentImage="*\\wmiprvse.exe" Image="*\\cmd.exe" CommandLine="*ADMIN$*" CommandLine="*/Q*"
+| table _time host User ParentImage CommandLine
+
+// 2. Defender real-time monitoring disabled
+index=sysmon EventCode=1 CommandLine="*Set-MpPreference*" CommandLine="*DisableRealtimeMonitoring*"
+| table _time host User CommandLine
+
+// 3. SAM / SYSTEM hive dump
+index=sysmon EventCode=1 Image="*\\reg.exe" CommandLine="* save *" (CommandLine="*hklm\\sam*" OR CommandLine="*hklm\\system*")
+| table _time host User CommandLine
+
+// 4. Certutil download
+index=sysmon EventCode=1 Image="*\\certutil.exe" CommandLine="*urlcache*" CommandLine="*http*"
+| table _time host User CommandLine
+
+// 5. wmiexec output files created in C:\Windows
+index=sysmon EventCode=11 TargetFilename="C:\\Windows\\__*"
+| table _time host Image TargetFilename
+
+// 6. Ransomware extension seen in this incident
+index=sysmon EventCode=11 TargetFilename="*.XqQ8w98UAO"
+| stats count by host Image
+
+// 7. Outbound connections to known IOCs
+index=sysmon EventCode=3 (DestinationIp="54.237.236.103" OR (DestinationIp="192.168.1.224" DestinationPort=5895))
+| table _time host Image DestinationIp DestinationPort

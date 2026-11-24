@@ -1,0 +1,19 @@
+title: Defender Real-Time Monitoring Disabled via PowerShell
+status: experimental
+description: Detects Set-MpPreference used to disable Microsoft Defender real-time monitoring.
+author: Hrishikesh
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        CommandLine|contains|all:
+            - "Set-MpPreference"
+            - "DisableRealtimeMonitoring"
+    condition: selection
+falsepositives:
+    - Authorised administrative testing
+level: high
+tags:
+    - attack.defense_evasion
+    - attack.t1562.001

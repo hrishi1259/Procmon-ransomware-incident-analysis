@@ -1,0 +1,23 @@
+title: SAM or SYSTEM Registry Hive Saved via reg.exe
+status: experimental
+description: Detects reg.exe saving the SAM or SYSTEM hive, commonly used for offline credential extraction.
+author: Hrishikesh
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_img:
+        Image|endswith: "\\reg.exe"
+    selection_cmd:
+        CommandLine|contains: " save "
+    selection_hive:
+        CommandLine|contains:
+            - "hklm\\sam"
+            - "hklm\\system"
+    condition: all of selection_*
+falsepositives:
+    - Backup or forensic tooling
+level: high
+tags:
+    - attack.credential_access
+    - attack.t1003.002
